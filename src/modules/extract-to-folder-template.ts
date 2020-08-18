@@ -41,8 +41,7 @@ export function getComponentText(componentName: string, targets: string[]): stri
     styleUrls: ['./${componentName}.component.css']
 })
 export class ${pascalCase(componentName)}Component {
-    constructor () {}
-    ${targets.map((target) => `@Input() ${target}`).join('\n')}
+    ${targets.map((target) => `@Input() ${target}`).join('\n    ')}constructor () {}
 }`;
 }
 

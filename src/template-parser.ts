@@ -156,5 +156,5 @@ export function getAllTargets(text) {
     }
   );
 
-  return targets;
+  return [...new Set(targets)];
 }
