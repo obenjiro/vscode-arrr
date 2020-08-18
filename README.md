@@ -2,9 +2,9 @@
   <img src="https://github.com/obenjiro/vscode-arrr/blob/master/assets/github_logo.png?raw=true">
 </p>
 
-# arrr - VSCode extension
+# ARRR - VSCode extension
 
-First extension that provides refactoring tools for your Angular codebase: extract HTML into a new component with ease!
+ARRR - is a first extension that provides Rapid Refactoring geeRs for your Angular codebase.
 
 ## Highlights
 
@@ -22,10 +22,10 @@ Go to the link below and click `Install`.
 
 ### Extracting HTML into a new Component
 
-arrr allows easy extraction of HTML into new Angular components (in the same or other file). Just select the HTML to extract, and arrr will handle all the rest:
+arrr allows easy extraction of HTML into new Angular components. Just select the HTML to extract, and arrr will handle all the rest:
 
-- It will identify all inputs to the newly created component.
-- Replace extracted HTML with newly created component, while providing it with all the props.
+- It will identify all Inputs to the newly created component.
+- Replace extracted HTML with newly created component, while providing it with all the Inputs.
 
 ![Example of HTML extraction](https://github.com/obenjiro/vscode-arrr/blob/master/assets/extract-to-dir.gif?raw=true)
 
