@@ -2,8 +2,8 @@
 	"name": "arrr",
 	"displayName": "arrr",
 	"description": "The extension provides refactoring tools for your Angular codebase",
-  "version": "0.0.2",
-  "publisher": "obenjiro",
+	"version": "0.0.3",
+	"publisher": "obenjiro",
 	"engines": {
 		"vscode": "^1.47.0"
 	},
@@ -55,12 +55,13 @@
 		"@angular/compiler": "^10.0.7",
 		"@types/mkdirp": "^1.0.1",
 		"change-case": "^4.1.1",
+		"glob": "^7.1.6",
 		"gitignore-to-glob": "^0.3.0",
 		"mkdirp": "^1.0.4"
 	},
-  "icon": "assets/icon.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/obenjiro/vscode-arrr.git"
-  }
+	"icon": "assets/icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/obenjiro/vscode-arrr.git"
+	}
 }
