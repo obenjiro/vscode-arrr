@@ -2,7 +2,7 @@
 	"name": "arrr",
 	"displayName": "arrr",
 	"description": "The extension provides refactoring tools for your Angular codebase",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "obenjiro",
 	"engines": {
 		"vscode": "^1.47.0"
@@ -19,13 +19,13 @@
 	],
 	"activationEvents": [
 		"onLanguage:html",
-		"onCommand:arrr.extract-to-folder"
+		"onCommand:extension.arrr.extract-to-folder"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "arrr.extract-to-folder",
+				"command": "extension.arrr.extract-to-folder",
 				"title": "Extract Angular component to folder"
 			}
 		]
