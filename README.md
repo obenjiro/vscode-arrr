@@ -4,6 +4,11 @@
 
 # ARRR - VSCode extension
 
+
+[![Build Status](https://vsmarketplacebadge.apphb.com/version/obenjiro.arrr.svg)](https://marketplace.visualstudio.com/items?itemName=obenjiro.arrr)
+
+
+
 ARRR - is a first extension that provides Rapid Refactoring geeRs for your Angular codebase.
 
 ## Highlights
