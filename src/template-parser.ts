@@ -156,5 +156,19 @@ export function getAllTargets(text) {
     }
   );
 
+  // removing variables refrences
+  visitTarget(
+    ast,
+    (value: any) => {
+      return getNodeCtor(value) === "Variable";
+    },
+    (node: any, parent: any) => {
+      if (targets.indexOf(node.name) > -1) {
+        targets.splice(targets.indexOf(node.name));
+      }
+      return KEEP_VISIT;
+    }
+  );
+
   return [...new Set(targets)];
 }

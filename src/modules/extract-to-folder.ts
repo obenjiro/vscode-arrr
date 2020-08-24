@@ -1,18 +1,33 @@
+import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
-import {activeFileName, getSelectedText, getSelectionOffsetRange, importMissingDependencies,} from "../editor";
-import {getAllTargets,} from "../template-parser";
-import {showFilePicker} from "../file-picker";
-import {createFileIfDoesntExist, persistFileSystemChanges, replaceTextInFile,} from "../file-system";
-import {pascalCase} from "change-case";
-import {appendSelectedTextToFile, replaceSelectionWith,} from "../code-actions";
-import {showDirectoryPicker} from "../directories-picker";
-import {getComponentInstance, getComponentText, getSpecText,} from "./extract-to-folder-template";
-
-const fs = require("fs");
-const path = require("path");
+import {
+  activeFileName,
+  getSelectedText,
+  getSelectionOffsetRange,
+  importMissingDependencies,
+} from "../editor";
+import { getAllTargets } from "../template-parser";
+import { showFilePicker } from "../file-picker";
+import {
+  createFileIfDoesntExist,
+  persistFileSystemChanges,
+  replaceTextInFile,
+} from "../file-system";
+import { pascalCase } from "change-case";
+import {
+  appendSelectedTextToFile,
+  replaceSelectionWith,
+} from "../code-actions";
+import { showDirectoryPicker } from "../directories-picker";
+import {
+  getComponentInstance,
+  getComponentText,
+  getSpecText,
+} from "./extract-to-folder-template";
 
 export async function extractToFolder() {
-  const {start, end} = getSelectionOffsetRange();
+  const { start, end } = getSelectionOffsetRange();
 
   if (start && end) {
     try {
@@ -31,9 +46,10 @@ export async function extractToFolder() {
 
         const componentName = parts[parts.length - 1];
 
+        const styleExt = await getStyleExt();
 
         const htmlFilePath = `${filePath}/${componentName}.component.html`;
-        const cssFilePath = `${filePath}/${componentName}.component.css`;
+        const cssFilePath = `${filePath}/${componentName}.component.${styleExt}`;
         const tsFilePath = `${filePath}/${componentName}.component.ts`;
         const specFilePath = `${filePath}/${componentName}.component.spec.ts`;
 
@@ -42,14 +58,14 @@ export async function extractToFolder() {
         await createFileIfDoesntExist(tsFilePath);
         await createFileIfDoesntExist(specFilePath);
 
-        await appendSelectedTextToFile({text}, htmlFilePath);
-        await appendSelectedTextToFile({text: ``}, cssFilePath);
+        await appendSelectedTextToFile({ text }, htmlFilePath);
+        await appendSelectedTextToFile({ text: `` }, cssFilePath);
         await appendSelectedTextToFile(
-          {text: getComponentText(componentName, targets)},
+          { text: getComponentText(componentName, targets) },
           tsFilePath
         );
         await appendSelectedTextToFile(
-          {text: getSpecText(componentName)},
+          { text: getSpecText(componentName) },
           specFilePath
         );
 
@@ -120,3 +136,13 @@ async function getComponentNameFromHtmlFile(filePath) {
   return (tsContent.match(/export class\s+([\w_]+)/) || [])[1];
 }
 
+async function getStyleExt() {
+  try {
+    const [angularJsonPath] = await vscode.workspace.findFiles("angular.json");
+    const config = JSON.parse(fs.readFileSync(angularJsonPath.path, "utf-8"));
+
+    return config.schematics["@schematics/angular:component"].styleext;
+  } catch (e) {
+    return "css";
+  }
+}

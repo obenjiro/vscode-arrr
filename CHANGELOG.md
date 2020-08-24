@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.1.0
+
+- Get style file extension from `@schematics/angular:component`
+- Fix extraction of structural directives (ngFor etc..)
+
 ## 0.0.5
 
 - Fix wrong contructor keyword placement
