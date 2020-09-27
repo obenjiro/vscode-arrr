@@ -160,7 +160,7 @@ export function getAllTargets(text) {
   visitTarget(
     ast,
     (value: any) => {
-      return getNodeCtor(value) === "Variable";
+      return getNodeCtor(value) === "Variable" || getNodeCtor(value) === "Reference";
     },
     (node: any, parent: any) => {
       if (targets.indexOf(node.name) > -1) {

@@ -32,13 +32,13 @@ describe('${pascalCase(componentName)}Component', () => {
 });`;
 }
 
-export function getComponentText(componentName: string, targets: string[]): string {
+export function getComponentText(componentName: string, targets: string[], sourceComponentConfig: any): string {
     return `import { Component, Input } from '@angular/core';
 
 @Component({
     selector: 'app-${componentName}',
     templateUrl: './${componentName}.component.html',
-    styleUrls: ['./${componentName}.component.css']
+    styleUrls: ['./${componentName}.component.${sourceComponentConfig.styleExt}']
 })
 export class ${pascalCase(componentName)}Component {
     ${targets.map((target) => `@Input() ${target}`).join('\n    ')}

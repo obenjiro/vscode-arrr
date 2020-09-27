@@ -6,6 +6,7 @@ import {
   getSelectedText,
   getSelectionOffsetRange,
   importMissingDependencies,
+  workspaceRoot,
 } from "../editor";
 import { getAllTargets } from "../template-parser";
 import { showFilePicker } from "../file-picker";
@@ -32,26 +33,23 @@ export async function extractToFolder() {
   if (start && end) {
     try {
       const text = getSelectedText() || "";
-      const sourceComponentName = await getComponentNameFromHtmlFile(
+      const componentText = await getComponentTextFromHtmlFileName(
         activeFileName()
       );
-
       const targets = getAllTargets(text);
+      const sourceComponentConfig = await getCurrentComponentConfig(componentText);
 
       try {
+        const rootPath = workspaceRoot();
         const folderPath = await showDirectoryPicker();
-        const filePath = (await showFilePicker(folderPath)) as string;
+        const fileName = (await showFilePicker()) as string;
 
-        const parts = filePath.split("/");
+        const fullPath = path.join(rootPath || '', folderPath, fileName);
 
-        const componentName = parts[parts.length - 1];
-
-        const styleExt = await getStyleExt();
-
-        const htmlFilePath = `${filePath}/${componentName}.component.html`;
-        const cssFilePath = `${filePath}/${componentName}.component.${styleExt}`;
-        const tsFilePath = `${filePath}/${componentName}.component.ts`;
-        const specFilePath = `${filePath}/${componentName}.component.spec.ts`;
+        const htmlFilePath = `${fullPath}/${fileName}.component.html`;
+        const cssFilePath = `${fullPath}/${fileName}.component.${sourceComponentConfig.styleExt}`;
+        const tsFilePath = `${fullPath}/${fileName}.component.ts`;
+        const specFilePath = `${fullPath}/${fileName}.component.spec.ts`;
 
         await createFileIfDoesntExist(htmlFilePath);
         await createFileIfDoesntExist(cssFilePath);
@@ -61,15 +59,15 @@ export async function extractToFolder() {
         await appendSelectedTextToFile({ text }, htmlFilePath);
         await appendSelectedTextToFile({ text: `` }, cssFilePath);
         await appendSelectedTextToFile(
-          { text: getComponentText(componentName, targets) },
+          { text: getComponentText(fileName, targets, sourceComponentConfig) },
           tsFilePath
         );
         await appendSelectedTextToFile(
-          { text: getSpecText(componentName) },
+          { text: getSpecText(fileName) },
           specFilePath
         );
 
-        const componentInstance = getComponentInstance(componentName, targets);
+        const componentInstance = getComponentInstance(fileName, targets);
         await persistFileSystemChanges(replaceSelectionWith(componentInstance));
 
         const moduleUris = await vscode.workspace.findFiles(
@@ -83,7 +81,7 @@ export async function extractToFolder() {
         const targetModuleDocuments = moduleDocuments.filter(
           (moduleDocument) => {
             const allText = moduleDocument.getText();
-            return new RegExp(`\\b${sourceComponentName}\\b`).test(allText);
+            return new RegExp(`\\b${sourceComponentConfig.componentName}\\b`).test(allText);
           }
         );
 
@@ -99,7 +97,7 @@ export async function extractToFolder() {
             const start = moduleDocument.positionAt(startOffset);
             const end = moduleDocument.positionAt(endOffset);
             const targetText = `${matches[0]}\n    ${pascalCase(
-              componentName
+              fileName
             )}Component,`;
 
             return replaceTextInFile(
@@ -126,23 +124,69 @@ export async function extractToFolder() {
   }
 }
 
-async function getComponentNameFromHtmlFile(filePath) {
+async function getComponentTextFromHtmlFileName(filePath): Promise<string> {
   const name = path.basename(filePath);
   const dir = path.dirname(filePath);
 
   const tsPath = path.join(dir, name.replace(".html", ".ts"));
   const tsContent = fs.readFileSync(tsPath, "utf-8");
 
-  return (tsContent.match(/export class\s+([\w_]+)/) || [])[1];
+  return tsContent;
 }
 
-async function getStyleExt() {
+async function getCurrentComponentConfig(componentText) {
   try {
-    const [angularJsonPath] = await vscode.workspace.findFiles("angular.json");
-    const config = JSON.parse(fs.readFileSync(angularJsonPath.path, "utf-8"));
+    const ts = require('typescript');
+    const node = ts.createSourceFile(
+      'x.ts',
+      componentText,
+      ts.ScriptTarget.Latest // langugeVersion
+    );
 
-    return config.schematics["@schematics/angular:component"].styleext;
+    let classDecl;
+    node.forEachChild(child => {
+      if (
+        ts.SyntaxKind[child.kind] === 'ClassDeclaration' && 
+        child.decorators[0].expression.expression.escapedText === 'Component'
+      ) {
+        classDecl = child;
+      }
+    });
+    // const decoratorName = classDecl.decorators[0].expression.expression.escapedText;
+    const decoratorParams = 
+      classDecl.decorators[0].expression.arguments.reduce((acc, el) => {
+        el.properties.forEach(
+          prop => acc[prop.name.escapedText] = prop.initializer.elements ? prop.initializer.elements.map(e => e.text) : prop.initializer.text
+        );
+        return acc;
+      }, {});
+
+    const styleInline = Boolean(decoratorParams.style);
+
+    return {
+      componentName: classDecl.name.escapedText,
+      styleInline,
+      styleExt: styleInline ? 'css': trimChar(path.extname(decoratorParams.styleUrls[0] || 'fail.css'), '.')
+    };
+
   } catch (e) {
-    return "css";
+
+    return {
+      componentName: (componentText.match(/export class\s+([\w_]+)/) || [])[1],
+      styleInline: false,
+      styleExt: 'css'
+    };
+
   }
 }
+
+function escapeRegExp(strToEscape) {
+  // Escape special characters for use in a regular expression
+  return strToEscape.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+};
+
+function trimChar(origString, charToTrim) {
+  charToTrim = escapeRegExp(charToTrim);
+  var regEx = new RegExp("^[" + charToTrim + "]+|[" + charToTrim + "]+$", "g");
+  return origString.replace(regEx, "");
+};

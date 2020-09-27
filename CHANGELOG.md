@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.1.1
+
+- Fix: Get style extension from parent component (to remove schematics complexity)
+- Fix: reference (for example `#ref`) extraction is now not happening for local declarations
+- Fix: Hyphen is now allowed in component filename
+
 ## 0.1.0
 
 - Get style file extension from `@schematics/angular:component`

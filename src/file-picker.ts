@@ -1,19 +1,8 @@
 import {
   convertRelativeToFullPath,
-  showInputBox,
-  workspaceRoot,
+  showInputBox
 } from './editor';
-import {createFileIfDoesntExist} from './file-system';
 import * as vscode from 'vscode';
-
-function completeToFullFilePath(file, folder) {
-  if (file === NEW_FILE_OPTION) {
-    return promptFileNameInput(folder).then(createFileIfDoesntExist as any);
-  } else {
-    const root = workspaceRoot();
-    return `${root || ''}${folder}/${file}`;
-  }
-}
 
 export function promptFileNameInput(directory) {
   return showInputBox(directory, 'Filename or relative path to a file').then(
@@ -23,12 +12,13 @@ export function promptFileNameInput(directory) {
 
 const NEW_FILE_OPTION: string = 'Enter Folder Name';
 
-export function showFilePicker(directory) {
+export function showFilePicker() {
   return (
     vscode.window
-      .showInputBox()
+      .showInputBox({
+        placeHolder: NEW_FILE_OPTION
+      })
       .then(cancelActionIfNeeded)
-      .then((file) => completeToFullFilePath(file, directory))
   );
 }
 

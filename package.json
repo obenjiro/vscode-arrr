@@ -2,7 +2,7 @@
 	"name": "arrr",
 	"displayName": "arrr",
 	"description": "The extension provides refactoring tools for your Angular codebase",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "obenjiro",
 	"engines": {
 		"vscode": "^1.47.0"
