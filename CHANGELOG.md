@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.2
+
+- Fix: add typescript as dependency (since it required)
+
 ## 0.1.1
 
 - Fix: Get style extension from parent component (to remove schematics complexity)
