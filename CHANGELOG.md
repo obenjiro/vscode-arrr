@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.3
+
+- Fix: Illigal character on Windows
+
 ## 0.1.2
 
 - Fix: add typescript as dependency (since it required)

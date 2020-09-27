@@ -44,7 +44,12 @@ export async function extractToFolder() {
         const folderPath = await showDirectoryPicker();
         const fileName = (await showFilePicker()) as string;
 
-        const fullPath = path.join(rootPath || '', folderPath, fileName);
+        let fullPath;
+        if (folderPath.indexOf(rootPath) > -1) {
+          fullPath = path.join(folderPath, fileName);
+        } else {
+          fullPath = path.join(rootPath || '', folderPath, fileName);
+        }
 
         const htmlFilePath = `${fullPath}/${fileName}.component.html`;
         const cssFilePath = `${fullPath}/${fileName}.component.${sourceComponentConfig.styleExt}`;
