@@ -77,7 +77,7 @@ export function removeContentFromFileAtLineAndColumn(
 }
 
 function countLineInFile(file): Promise<number> {
-  return new Promise((reoslve) => {
+  return new Promise((resolve) => {
     let i;
     let count = 0;
     fs.createReadStream(file)
@@ -89,7 +89,7 @@ function countLineInFile(file): Promise<number> {
         }
       })
       .on('end', function () {
-        reoslve(count);
+        resolve(count);
       });
   });
 }
