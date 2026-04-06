@@ -30,12 +30,12 @@ suite('CompleteActionProvider', () => {
     });
   });
 
-  test('returns no actions for invalid template snippets', async () => {
+  test('returns extract action for malformed-but-parseable snippets', async () => {
     await withSelectedText('<div>{{', async () => {
       const result = provider.provideCodeActions() as vscode.Command[];
 
       assert.ok(Array.isArray(result));
-      assert.strictEqual(result.length, 0);
+      assert.strictEqual(result.length, 1);
     });
   });
 

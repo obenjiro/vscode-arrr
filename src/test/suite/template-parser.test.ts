@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import {getAllTargets, getNodeCtor, templateParser, visitTarget} from '../../template-parser';
+import {getAllTargets, getNodeCtor, KEEP_VISIT, templateParser, visitTarget} from '../../template-parser';
 
 suite('template-parser', () => {
   test('parse returns Angular AST without parser errors for valid HTML', () => {
@@ -67,6 +67,7 @@ suite('template-parser', () => {
       (value: any) => Boolean(value.flag),
       () => {
         count += 1;
+        return KEEP_VISIT;
       }
     );
 

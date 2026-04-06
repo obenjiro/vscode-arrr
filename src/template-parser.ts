@@ -164,7 +164,7 @@ export function getAllTargets(text) {
     },
     (node: any, parent: any) => {
       if (targets.indexOf(node.name) > -1) {
-        targets.splice(targets.indexOf(node.name));
+        targets.splice(targets.indexOf(node.name), 1);
       }
       return KEEP_VISIT;
     }

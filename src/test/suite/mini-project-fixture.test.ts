@@ -7,7 +7,7 @@ import {createFileIfDoesntExist, subfoldersListOf} from '../../file-system';
 import {getAllTargets} from '../../template-parser';
 import {getComponentInstance, getComponentText} from '../../modules/extract-to-folder-template';
 
-const fixtureRoot = path.resolve(__dirname, '../fixtures/mini-project');
+const fixtureRoot = path.resolve(__dirname, '../../../src/test/fixtures/mini-project');
 
 function readFixture(relativePath: string): string {
   return fs.readFileSync(path.join(fixtureRoot, relativePath), 'utf8');
