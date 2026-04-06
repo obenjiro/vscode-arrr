@@ -1,15 +1,33 @@
 import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
 
-suite('Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
+suite('Extension Activation', () => {
+  test('registers the extract command', async () => {
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes('extension.arrr.extract-to-folder'));
+  });
 
-	test('Sample test', () => {
-		assert.equal(-1, [1, 2, 3].indexOf(5));
-		assert.equal(-1, [1, 2, 3].indexOf(0));
-	});
+  test('extension can be resolved and activated', async () => {
+    const extension = vscode.extensions.getExtension('obenjiro.arrr');
+    assert.ok(extension);
+
+    await extension?.activate();
+
+    assert.strictEqual(extension?.isActive, true);
+  });
+
+
+  test('command is a safe no-op for empty selections', async () => {
+    const document = await vscode.workspace.openTextDocument({
+      language: 'html',
+      content: '<div>{{title}}</div>',
+    });
+    const editor = await vscode.window.showTextDocument(document);
+    const cursor = new vscode.Position(0, 0);
+    editor.selection = new vscode.Selection(cursor, cursor);
+
+    await assert.doesNotReject(async () => {
+      await vscode.commands.executeCommand('extension.arrr.extract-to-folder');
+    });
+  });
 });

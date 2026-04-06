@@ -151,6 +151,9 @@ export function getAllTargets(text) {
       );
     },
     (node: any, parent: any) => {
+      if (typeof node.name === 'string' && node.name.startsWith('$')) {
+        return KEEP_VISIT;
+      }
       targets.push(node.name);
       return KEEP_VISIT;
     }
@@ -163,8 +166,10 @@ export function getAllTargets(text) {
       return getNodeCtor(value) === "Variable" || getNodeCtor(value) === "Reference";
     },
     (node: any, parent: any) => {
-      if (targets.indexOf(node.name) > -1) {
-        targets.splice(targets.indexOf(node.name));
+      let targetIdx = targets.indexOf(node.name);
+      while (targetIdx > -1) {
+        targets.splice(targetIdx, 1);
+        targetIdx = targets.indexOf(node.name);
       }
       return KEEP_VISIT;
     }

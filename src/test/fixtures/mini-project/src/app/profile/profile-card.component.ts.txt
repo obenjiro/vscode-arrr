@@ -1,0 +1,16 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-profile-card',
+  templateUrl: './profile-card.component.html',
+  styleUrls: ['./profile-card.component.scss']
+})
+export class ProfileCardComponent {
+  title = 'Profile';
+  user = { name: 'Ada' };
+  tags = ['admin'];
+
+  save(profile: any, event: Event) {
+    return { profile, event };
+  }
+}

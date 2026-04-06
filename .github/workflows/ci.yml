@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  checks:
+    name: Compile and Lint (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Lint
+        run: npm run lint
+
+  vscode-integration-tests:
+    name: VS Code integration tests
+    runs-on: ubuntu-latest
+    needs: checks
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Linux dependencies for VS Code test host
+        run: |
+          sudo apt-get update
+          ASOUND_PKG="libasound2"
+          if apt-cache show libasound2t64 >/dev/null 2>&1; then
+            ASOUND_PKG="libasound2t64"
+          fi
+
+          sudo apt-get install -y \
+            xvfb \
+            libgtk-3-0 \
+            libxss1 \
+            "$ASOUND_PKG" \
+            libatk1.0-0 \
+            libnss3 \
+            libxshmfence1 \
+            libgbm1
+
+      - name: Run extension tests
+        run: xvfb-run -a npm test
