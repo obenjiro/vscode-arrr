@@ -26,6 +26,7 @@ import {
   getComponentText,
   getSpecText,
 } from "./extract-to-folder-template";
+import { resolveGeneratedComponentOptions } from "../angular-config";
 
 export async function extractToFolder() {
   const { start, end } = getSelectionOffsetRange();
@@ -38,6 +39,11 @@ export async function extractToFolder() {
       );
       const targets = getAllTargets(text);
       const sourceComponentConfig = await getCurrentComponentConfig(componentText);
+      const generatedComponentOptions = resolveGeneratedComponentOptions(
+        workspaceRoot(),
+        sourceComponentConfig.styleExt,
+        activeFileName()
+      );
 
       try {
         const rootPath = workspaceRoot();
@@ -52,25 +58,33 @@ export async function extractToFolder() {
         }
 
         const htmlFilePath = `${fullPath}/${fileName}.component.html`;
-        const cssFilePath = `${fullPath}/${fileName}.component.${sourceComponentConfig.styleExt}`;
+        const cssFilePath = `${fullPath}/${fileName}.component.${generatedComponentOptions.styleExt}`;
         const tsFilePath = `${fullPath}/${fileName}.component.ts`;
         const specFilePath = `${fullPath}/${fileName}.component.spec.ts`;
 
         await createFileIfDoesntExist(htmlFilePath);
         await createFileIfDoesntExist(cssFilePath);
         await createFileIfDoesntExist(tsFilePath);
-        await createFileIfDoesntExist(specFilePath);
+        if (!generatedComponentOptions.skipTests) {
+          await createFileIfDoesntExist(specFilePath);
+        }
 
         await appendSelectedTextToFile({ text }, htmlFilePath);
         await appendSelectedTextToFile({ text: `` }, cssFilePath);
         await appendSelectedTextToFile(
-          { text: getComponentText(fileName, targets, sourceComponentConfig) },
+          {
+            text: getComponentText(fileName, targets, {
+              styleExt: generatedComponentOptions.styleExt,
+            }),
+          },
           tsFilePath
         );
-        await appendSelectedTextToFile(
-          { text: getSpecText(fileName) },
-          specFilePath
-        );
+        if (!generatedComponentOptions.skipTests) {
+          await appendSelectedTextToFile(
+            { text: getSpecText(fileName) },
+            specFilePath
+          );
+        }
 
         const componentInstance = getComponentInstance(fileName, targets);
         await persistFileSystemChanges(replaceSelectionWith(componentInstance));
