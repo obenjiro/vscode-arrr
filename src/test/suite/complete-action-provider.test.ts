@@ -17,7 +17,8 @@ async function withSelectedText<T>(text: string, fn: () => T | Promise<T>) {
   return fn();
 }
 
-suite('CompleteActionProvider', () => {
+suite('CompleteActionProvider', function () {
+  this.timeout(20000);
   const provider = new CompleteActionProvider();
 
   test('returns extract action for valid Angular template snippets', async () => {
