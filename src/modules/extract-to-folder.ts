@@ -15,7 +15,6 @@ import {
   persistFileSystemChanges,
   replaceTextInFile,
 } from "../file-system";
-import { pascalCase } from "change-case";
 import {
   appendSelectedTextToFile,
   replaceSelectionWith,
@@ -26,6 +25,7 @@ import {
   getComponentText,
   getSpecText,
 } from "./extract-to-folder-template";
+import { getDeclarationChangeDescriptor } from "./module-declaration";
 
 export async function extractToFolder() {
   const { start, end } = getSelectionOffsetRange();
@@ -93,20 +93,20 @@ export async function extractToFolder() {
         const changes = await Promise.all(
           targetModuleDocuments.map((moduleDocument) => {
             const allText = moduleDocument.getText();
-            const matches = allText.match(/declarations\s*:\s*\[/) || [];
-
-            const idx = matches.index || 0;
-            const startOffset = idx;
-            const endOffset = idx + matches[0].length;
-
-            const start = moduleDocument.positionAt(startOffset);
-            const end = moduleDocument.positionAt(endOffset);
-            const targetText = `${matches[0]}\n    ${pascalCase(
+            const changeDescriptor = getDeclarationChangeDescriptor(
+              allText,
               fileName
-            )}Component,`;
+            );
+
+            if (!changeDescriptor) {
+              return null;
+            }
+
+            const start = moduleDocument.positionAt(changeDescriptor.startOffset);
+            const end = moduleDocument.positionAt(changeDescriptor.endOffset);
 
             return replaceTextInFile(
-              targetText,
+              changeDescriptor.targetText,
               start,
               end,
               moduleDocument.fileName
@@ -114,7 +114,9 @@ export async function extractToFolder() {
           })
         );
 
-        await persistFileSystemChanges(...changes);
+        await persistFileSystemChanges(
+          ...changes.filter((change) => change !== null)
+        );
         await Promise.all(
           targetModuleDocuments.map((moduleDocument) => {
             return importMissingDependencies(moduleDocument.fileName);
