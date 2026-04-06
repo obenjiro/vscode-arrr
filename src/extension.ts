@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 
 import {extractToFolder} from './modules/extract-to-folder';
+import {inlineComponentIntoCurrentComponent} from './modules/inline-component-command';
 import {templateParser} from './template-parser';
 import {getSelectedText} from './editor';
 
@@ -15,12 +16,21 @@ export class CompleteActionProvider implements vscode.CodeActionProvider {
       try {
         const output = templateParser.parse(text);
         if (!output.errors) {
-          return [
+          const actions: vscode.Command[] = [
             {
               command: 'extension.arrr.extract-to-folder',
               title: 'Extract Angular Component',
             },
           ];
+
+          if (/^\s*<\s*[a-zA-Z][\w-]*-[\w-]+\b/.test(text)) {
+            actions.push({
+              command: 'extension.arrr.inline-component',
+              title: 'Inline Angular Component',
+            });
+          }
+
+          return actions;
         }
       } catch (err) {
       }
@@ -37,6 +47,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'extension.arrr.extract-to-folder',
       extractToFolder
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'extension.arrr.inline-component',
+      inlineComponentIntoCurrentComponent
     )
   );
 

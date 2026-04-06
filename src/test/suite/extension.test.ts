@@ -2,9 +2,10 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Extension Activation', () => {
-  test('registers the extract command', async () => {
+  test('registers the refactor commands', async () => {
     const commands = await vscode.commands.getCommands(true);
     assert.ok(commands.includes('extension.arrr.extract-to-folder'));
+    assert.ok(commands.includes('extension.arrr.inline-component'));
   });
 
   test('extension can be resolved and activated', async () => {

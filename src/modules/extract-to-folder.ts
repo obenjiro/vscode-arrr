@@ -15,7 +15,6 @@ import {
   persistFileSystemChanges,
   replaceTextInFile,
 } from "../file-system";
-import { pascalCase } from "change-case";
 import {
   appendSelectedTextToFile,
   replaceSelectionWith,
@@ -26,6 +25,8 @@ import {
   getComponentText,
   getSpecText,
 } from "./extract-to-folder-template";
+import { getDeclarationChangeDescriptor } from "./module-declaration";
+import { selectDeclaringModules, sortModulePathsByProximity } from "./module-selection";
 import { resolveGeneratedComponentOptions } from "../angular-config";
 
 export async function extractToFolder() {
@@ -104,23 +105,35 @@ export async function extractToFolder() {
           }
         );
 
+        const targetModulePaths = targetModuleDocuments.map((moduleDocument) => moduleDocument.fileName);
+        const selectedModulePath = await getSelectedModulePath(targetModulePaths);
+
+        if (targetModuleDocuments.length > 1 && !selectedModulePath) {
+          return;
+        }
+
+        const selectedModulePaths = selectDeclaringModules(targetModulePaths, selectedModulePath);
+        const selectedModuleDocuments = targetModuleDocuments.filter((moduleDocument) =>
+          selectedModulePaths.includes(moduleDocument.fileName)
+        );
+
         const changes = await Promise.all(
-          targetModuleDocuments.map((moduleDocument) => {
+          selectedModuleDocuments.map((moduleDocument) => {
             const allText = moduleDocument.getText();
-            const matches = allText.match(/declarations\s*:\s*\[/) || [];
-
-            const idx = matches.index || 0;
-            const startOffset = idx;
-            const endOffset = idx + matches[0].length;
-
-            const start = moduleDocument.positionAt(startOffset);
-            const end = moduleDocument.positionAt(endOffset);
-            const targetText = `${matches[0]}\n    ${pascalCase(
+            const changeDescriptor = getDeclarationChangeDescriptor(
+              allText,
               fileName
-            )}Component,`;
+            );
+
+            if (!changeDescriptor) {
+              return null;
+            }
+
+            const start = moduleDocument.positionAt(changeDescriptor.startOffset);
+            const end = moduleDocument.positionAt(changeDescriptor.endOffset);
 
             return replaceTextInFile(
-              targetText,
+              changeDescriptor.targetText,
               start,
               end,
               moduleDocument.fileName
@@ -128,9 +141,11 @@ export async function extractToFolder() {
           })
         );
 
-        await persistFileSystemChanges(...changes);
+        await persistFileSystemChanges(
+          ...changes.filter((change) => change !== null)
+        );
         await Promise.all(
-          targetModuleDocuments.map((moduleDocument) => {
+          selectedModuleDocuments.map((moduleDocument) => {
             return importMissingDependencies(moduleDocument.fileName);
           })
         );
@@ -209,3 +224,23 @@ function trimChar(origString, charToTrim) {
   var regEx = new RegExp("^[" + charToTrim + "]+|[" + charToTrim + "]+$", "g");
   return origString.replace(regEx, "");
 };
+
+
+async function getSelectedModulePath(modulePaths: string[]): Promise<string | undefined> {
+  if (modulePaths.length <= 1) {
+    return modulePaths[0];
+  }
+
+  const sortedModulePaths = sortModulePathsByProximity(modulePaths, activeFileName());
+
+  const selectedModule = await vscode.window.showQuickPick(
+    sortedModulePaths.map((modulePath) => ({
+      label: path.basename(modulePath),
+      description: path.dirname(modulePath),
+      modulePath,
+    })),
+    { placeHolder: 'Select the NgModule that should declare the extracted component' }
+  );
+
+  return selectedModule?.modulePath;
+}

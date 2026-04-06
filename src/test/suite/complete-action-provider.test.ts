@@ -31,6 +31,15 @@ suite('CompleteActionProvider', function () {
     });
   });
 
+
+  test('returns inline action when a component usage tag is selected', async () => {
+    await withSelectedText('<app-button [label]="cta"></app-button>', async () => {
+      const result = provider.provideCodeActions() as vscode.Command[];
+
+      assert.ok(Array.isArray(result));
+      assert.ok(result.some((action) => action.command === 'extension.arrr.inline-component'));
+    });
+  });
   test('returns extract action for malformed-but-parseable snippets', async () => {
     await withSelectedText('<div>{{', async () => {
       const result = provider.provideCodeActions() as vscode.Command[];

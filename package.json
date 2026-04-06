@@ -19,7 +19,8 @@
 	],
 	"activationEvents": [
 		"onLanguage:html",
-		"onCommand:extension.arrr.extract-to-folder"
+		"onCommand:extension.arrr.extract-to-folder",
+		"onCommand:extension.arrr.inline-component"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -27,6 +28,10 @@
 			{
 				"command": "extension.arrr.extract-to-folder",
 				"title": "Extract Angular component to folder"
+			},
+			{
+				"command": "extension.arrr.inline-component",
+				"title": "Inline Angular component into current component"
 			}
 		]
 	},
