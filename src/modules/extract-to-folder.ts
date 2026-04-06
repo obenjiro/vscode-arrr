@@ -26,6 +26,7 @@ import {
   getSpecText,
 } from "./extract-to-folder-template";
 import { getDeclarationChangeDescriptor } from "./module-declaration";
+import { selectDeclaringModules, sortModulePathsByProximity } from "./module-selection";
 
 export async function extractToFolder() {
   const { start, end } = getSelectionOffsetRange();
@@ -90,8 +91,20 @@ export async function extractToFolder() {
           }
         );
 
+        const targetModulePaths = targetModuleDocuments.map((moduleDocument) => moduleDocument.fileName);
+        const selectedModulePath = await getSelectedModulePath(targetModulePaths);
+
+        if (targetModuleDocuments.length > 1 && !selectedModulePath) {
+          return;
+        }
+
+        const selectedModulePaths = selectDeclaringModules(targetModulePaths, selectedModulePath);
+        const selectedModuleDocuments = targetModuleDocuments.filter((moduleDocument) =>
+          selectedModulePaths.includes(moduleDocument.fileName)
+        );
+
         const changes = await Promise.all(
-          targetModuleDocuments.map((moduleDocument) => {
+          selectedModuleDocuments.map((moduleDocument) => {
             const allText = moduleDocument.getText();
             const changeDescriptor = getDeclarationChangeDescriptor(
               allText,
@@ -118,7 +131,7 @@ export async function extractToFolder() {
           ...changes.filter((change) => change !== null)
         );
         await Promise.all(
-          targetModuleDocuments.map((moduleDocument) => {
+          selectedModuleDocuments.map((moduleDocument) => {
             return importMissingDependencies(moduleDocument.fileName);
           })
         );
@@ -197,3 +210,23 @@ function trimChar(origString, charToTrim) {
   var regEx = new RegExp("^[" + charToTrim + "]+|[" + charToTrim + "]+$", "g");
   return origString.replace(regEx, "");
 };
+
+
+async function getSelectedModulePath(modulePaths: string[]): Promise<string | undefined> {
+  if (modulePaths.length <= 1) {
+    return modulePaths[0];
+  }
+
+  const sortedModulePaths = sortModulePathsByProximity(modulePaths, activeFileName());
+
+  const selectedModule = await vscode.window.showQuickPick(
+    sortedModulePaths.map((modulePath) => ({
+      label: path.basename(modulePath),
+      description: path.dirname(modulePath),
+      modulePath,
+    })),
+    { placeHolder: 'Select the NgModule that should declare the extracted component' }
+  );
+
+  return selectedModule?.modulePath;
+}
