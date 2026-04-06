@@ -56,11 +56,16 @@ jobs:
       - name: Install Linux dependencies for VS Code test host
         run: |
           sudo apt-get update
+          ASOUND_PKG="libasound2"
+          if apt-cache show libasound2t64 >/dev/null 2>&1; then
+            ASOUND_PKG="libasound2t64"
+          fi
+
           sudo apt-get install -y \
             xvfb \
             libgtk-3-0 \
             libxss1 \
-            libasound2 \
+            "$ASOUND_PKG" \
             libatk1.0-0 \
             libnss3 \
             libxshmfence1 \
