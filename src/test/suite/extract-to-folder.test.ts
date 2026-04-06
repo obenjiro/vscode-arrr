@@ -31,4 +31,24 @@ suite('extract-to-folder', () => {
     assert.ok(change);
     assert.strictEqual(change?.targetText, 'declarations: [\n    ChildCardComponent,');
   });
+
+  test('adds declaration and export when declaring module is not AppModule', () => {
+    const moduleText = `
+      @NgModule({
+        declarations: [ProfileCardComponent],
+        exports: [ProfileCardComponent],
+      })
+      export class ProfileModule {}
+    `;
+
+    const change = getDeclarationChangeDescriptor(moduleText, 'child-card');
+
+    assert.ok(change);
+    assert.ok(
+      change?.targetText.includes('declarations: [\n    ChildCardComponent,ProfileCardComponent],')
+    );
+    assert.ok(
+      change?.targetText.includes('exports: [\n    ChildCardComponent,')
+    );
+  });
 });
